@@ -17,22 +17,25 @@
 <canvas id="game"></canvas>
 
 <div id="top">
-  <div class="cell money">₺ <b id="cr">0</b><small id="cap"></small></div>
-  <div class="cell power" title="Elektrik: kullanılan / üretilen"><span>⚡</span><div class="pbar"><i id="powFill"></i></div><small id="powTxt"></small></div>
-  <div class="cell" id="mats"></div>
-  <div class="cell" id="clock"></div>
-  <div class="cell small" id="day"></div>
-  <div class="cell" id="moral"></div>
-  <div class="spacer"></div>
-  <button id="swBtn" class="hide">⚡</button>
-  <button id="fsBtn" class="phone-only" title="Tam ekran">⛶</button>
-  <button id="buildBtn" class="phone-only" title="Yapı menüsü">🏗</button>
-  <button id="cmdBtn" class="phone-only" title="Komutlar">⚔</button>
-  <button id="devletBtn" title="Devlet ve toplum">🏛</button>
-  <button id="logBtn" title="Olaylar">📜</button>
-  <button id="speedBtn">⏩ 1×</button>
-  <button id="saveBtn" title="Kaydet">💾</button>
-  <button id="menuBtn" title="Menü">☰</button>
+  <div id="topStats">
+    <div class="cell money">₺ <b id="cr">0</b><small id="cap"></small></div>
+    <div class="cell power" title="Elektrik: kullanılan / üretilen"><span>⚡</span><div class="pbar"><i id="powFill"></i></div><small id="powTxt"></small></div>
+    <div class="cell" id="mats"></div>
+    <div class="cell" id="clock"></div>
+    <div class="cell small" id="day"></div>
+    <div class="cell" id="moral"></div>
+  </div>
+  <div id="topActs">
+    <button id="swBtn" class="hide">⚡</button>
+    <button id="fsBtn" class="phone-only" type="button" title="Tam ekran">⛶</button>
+    <button id="buildBtn" class="phone-only" type="button" title="Yapı menüsü">🏗</button>
+    <button id="cmdBtn" class="phone-only" type="button" title="Komutlar">⚔</button>
+    <button id="devletBtn" title="Devlet ve toplum">🏛</button>
+    <button id="logBtn" title="Olaylar">📜</button>
+    <button id="speedBtn">⏩ 1×</button>
+    <button id="saveBtn" title="Kaydet">💾</button>
+    <button id="menuBtn" title="Menü">☰</button>
+  </div>
 </div>
 
 <div id="side">

@@ -14,16 +14,16 @@ function audioSetBackground(hidden){
   var now=SND.ctx.currentTime;
   if (hidden){
     try {
-      if (SND.musicGain){ SND.musicGain.gain.cancelScheduledValues(now); SND.musicGain.gain.setValueAtTime(0, now); }
-      if (SND.master){ SND.master.gain.cancelScheduledValues(now); SND.master.gain.setValueAtTime(0, now); }
+      if (SND.musicGain){ SND.musicGain.gain.cancelScheduledValues(now); SND.musicGain.gain.value=0; }
+      if (SND.master){ SND.master.gain.cancelScheduledValues(now); SND.master.gain.value=0; }
     } catch(e){ if (SND.musicGain) SND.musicGain.gain.value=0; if (SND.master) SND.master.gain.value=0; }
     if (SND.ctx.state==='running'){ var p=SND.ctx.suspend(); if (p&&p.catch) p.catch(function(){}); }
     return;
   }
   if (document.hidden || document.visibilityState==='hidden') return;
   try {
-    if (SND.musicGain){ SND.musicGain.gain.cancelScheduledValues(now); SND.musicGain.gain.setValueAtTime(SND.mvol, now); }
-    if (SND.master){ SND.master.gain.cancelScheduledValues(now); SND.master.gain.setValueAtTime(SND.vol, now); }
+    if (SND.musicGain){ SND.musicGain.gain.cancelScheduledValues(now); SND.musicGain.gain.value=SND.mvol; }
+    if (SND.master){ SND.master.gain.cancelScheduledValues(now); SND.master.gain.value=SND.vol; }
   } catch(e2){ if (SND.musicGain) SND.musicGain.gain.value=SND.mvol; if (SND.master) SND.master.gain.value=SND.vol; }
   if (SND.ctx.state==='suspended'){ var q=SND.ctx.resume(); if (q&&q.catch) q.catch(function(){}); }
   if (SND.wantMusic && (!SND.music || SND.musicName!==SND.wantMusic)) playMusic(SND.wantMusic);

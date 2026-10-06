@@ -6,6 +6,8 @@ button{font:inherit;color:#eef3f8;background:linear-gradient(#2c3a48,#1c2631);bo
 button:active{transform:translateY(1px)} button.on{background:linear-gradient(#3d7a3d,#285428);border-color:#7c7}
 button:disabled{opacity:.4}
 #top{position:fixed;left:0;right:0;top:0;height:40px;display:flex;align-items:center;gap:6px;padding:0 6px;background:linear-gradient(rgba(10,14,20,.94),rgba(10,14,20,.78));border-bottom:1px solid #2d3b4a;z-index:5;font-size:14px;white-space:nowrap;overflow:hidden}
+#topStats{display:flex;align-items:center;gap:6px;min-width:0;flex:1 1 auto;overflow:hidden}
+#topActs{display:flex;align-items:center;gap:4px;flex:0 0 auto}
 #top .cell{display:flex;align-items:center;gap:4px;padding:3px 7px;background:rgba(255,255,255,.04);border-radius:6px}
 #top .money b{color:#ffd34d;font-size:16px} #top small{opacity:.6;font-size:11px}
 #top .small{font-size:12px;opacity:.85}
@@ -82,7 +84,7 @@ html.cmd-shut #touch{display:none!important}
 @media (max-height:420px){ #touch{flex-direction:row;bottom:auto;top:42px;left:6px} #touch button{width:38px;height:38px} #mini{width:104px;height:104px} #selp{left:116px} }
 
 /* Telefon: tek ince şerit, çekmeceler kapalı, oyun alanı ekranın çoğu */
-html.mob #top{height:28px;font-size:11px;gap:3px;padding:0 4px;z-index:10;overflow-x:auto;overflow-y:hidden;touch-action:pan-x}
+html.mob #top{height:28px;font-size:11px;gap:3px;padding:0 4px;z-index:10;overflow:hidden;touch-action:manipulation}
 html.mob #top .cell{padding:1px 4px}
 html.mob #top .money b{font-size:13px}
 html.mob #top .small,html.mob #mats,html.mob #moral,html.mob #day{display:none!important}
@@ -118,4 +120,7 @@ html.mob .toast{font-size:12px;padding:4px 8px}
   html.mob #selp{left:60px}
   html.mob #top{height:26px}
   html.mob #side{top:26px}
+}
+@media (max-width:520px){
+  html.mob #clock,html.mob #devletBtn,html.mob #logBtn{display:none!important}
 }
