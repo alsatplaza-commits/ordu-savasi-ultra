@@ -2,11 +2,14 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://alsatplaza-commits.github.io; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0d1117">
 <title>Ordu Savaşı Ultra — Frontier Rift</title>
+<script src="js/mobil.js"></script>
 <link rel="stylesheet" href="stil.css">
 <link rel="icon" href="ikon.png">
 </head>
@@ -14,22 +17,29 @@
 <canvas id="game"></canvas>
 
 <div id="top">
-  <div class="cell money">₺ <b id="cr">0</b><small id="cap"></small></div>
-  <div class="cell power" title="Elektrik: kullanılan / üretilen"><span>⚡</span><div class="pbar"><i id="powFill"></i></div><small id="powTxt"></small></div>
-  <div class="cell" id="mats"></div>
-  <div class="cell" id="clock"></div>
-  <div class="cell small" id="day"></div>
-  <div class="cell" id="moral"></div>
-  <div class="spacer"></div>
-  <button id="swBtn" class="hide">⚡</button>
-  <button id="devletBtn" title="Devlet ve toplum">🏛</button>
-  <button id="logBtn" title="Olaylar">📜</button>
-  <button id="speedBtn">⏩ 1×</button>
-  <button id="saveBtn" title="Kaydet">💾</button>
-  <button id="menuBtn" title="Menü">☰</button>
+  <div id="topStats">
+    <div class="cell money">₺ <b id="cr">0</b><small id="cap"></small></div>
+    <div class="cell power" title="Elektrik: kullanılan / üretilen"><span>⚡</span><div class="pbar"><i id="powFill"></i></div><small id="powTxt"></small></div>
+    <div class="cell" id="mats"></div>
+    <div class="cell" id="clock"></div>
+    <div class="cell small" id="day"></div>
+    <div class="cell" id="moral"></div>
+  </div>
+  <div id="topActs">
+    <button id="swBtn" class="hide">⚡</button>
+    <button id="fsBtn" class="phone-only" type="button" title="Tam ekran">⛶</button>
+    <button id="buildBtn" class="phone-only" type="button" title="Yapı menüsü">🏗</button>
+    <button id="cmdBtn" class="phone-only" type="button" title="Komutlar">⚔</button>
+    <button id="devletBtn" title="Devlet ve toplum">🏛</button>
+    <button id="logBtn" title="Olaylar">📜</button>
+    <button id="speedBtn">⏩ 1×</button>
+    <button id="saveBtn" title="Kaydet">💾</button>
+    <button id="menuBtn" title="Menü">☰</button>
+  </div>
 </div>
 
 <div id="side">
+  <button id="sideClose" type="button" title="Yapı menüsünü kapat">✖ Kapat</button>
   <div id="tabs"></div>
   <div id="grid"></div>
 </div>
@@ -38,12 +48,13 @@
 <canvas id="mini" width="200" height="200"></canvas>
 <div id="selp" class="hide"></div>
 <div id="touch">
-  <button id="boxBtn" title="Kutu ile seç">⬚</button>
+  <button id="cmdClose" type="button" title="Komutları kapat">✖</button>
+  <button id="boxBtn" title="Kutu ile seç (isteğe bağlı)">⬚</button>
   <button id="armyBtn" title="Tüm ordu">👥</button>
   <button id="baseBtn" title="Üsse git">🏠</button>
-  <button id="deselBtn" title="Seçimi bırak">✖</button>
+  <button id="deselBtn" title="Seçimi bırak ve panelleri kapat">✖</button>
 </div>
-<div id="placebar" class="hide"><button id="placeOk">✔ Yerleştir</button><button id="placeNo">✖ Vazgeç</button><small>Dokun: konumu seç • aynı yere tekrar dokun ya da ✔</small></div>
+<div id="placebar" class="hide"><button id="placeOk">✔ Yerleştir</button><button id="placeNo">✖</button><small>Yere dokun, sonra ✔</small></div>
 <div id="toasts"></div>
 <div id="fps"></div>
 
@@ -96,9 +107,10 @@
   <div class="mbox wide scroll">
     <h2>❓ Nasıl oynanır</h2>
     <p><b>Amaç:</b> Kızıl Cephe'nin Komuta Merkezini yık ya da ajanla ele geçir. Kendi Komuta Merkezini koru.</p>
-    <p><b>Seçme:</b> Birliğe dokun. Aynı birliğe iki kez hızlı dokun = ekrandaki aynı türden hepsi. ⬚ ile kutu seç (farede sol tuşla sürükle). 👥 = tüm ordu.</p>
-    <p><b>Emir:</b> Seçiliyken yere dokun = git. Düşmana dokun = saldır. Kristale dokun = toplayıcı oraya gider. Fare: sağ tık da emir verir, seçimi bırakır.</p>
-    <p><b>Kamera:</b> Tek parmakla kaydır, iki parmakla yakınlaştır. Fare tekerleği, WASD, mini harita.</p>
+    <p><b>Seçme:</b> Birliğe dokun. Aynı birliğe iki kez hızlı dokun = ekrandaki aynı türden hepsi. ⬚ kutu seçim isteğe bağlıdır (farede sol tuşla sürükle). 👥 = tüm ordu.</p>
+    <p><b>Emir:</b> Askere dokun, sonra yere dokun ya da parmağını sürükle = oraya gider. Düşmana dokun = saldır. Kristale dokun = toplayıcı oraya gider. Fare: sağ tık da emir verir.</p>
+    <p><b>Kamera:</b> Seçili birlik yokken tek parmakla kaydır. Birlik seçiliyken sürüklemek askeri yürütür; kamerayı iki parmakla kaydır. Fare tekerleği, WASD, mini harita.</p>
+    <p><b>Telefon:</b> Üstte ince şerit. 🏗 yapı menüsü ve ⚔ komutlar kapalı başlar; ✖ ile kapanır. Yerleştirme küçük bir bildiridir. Ayrıntı şeridine dokununca bilgi açılır. ⛶ veya ilk dokunuş tam ekran yapar.</p>
     <p><b>Üs:</b> Sağdaki 🏗 menüden yapı seç → hazır olunca yeşil alana yerleştir. Elektrik yetmezse her şey yavaşlar.</p>
     <p><b>Ekonomi:</b> Toplayıcılar kristal, demir, bakır, altın ve meteor elementi toplar. Depo dolunca Silo kur. Petrol kuyularını ajanla al.</p>
     <p><b>Taş-kağıt-makas:</b> Asker → askeri yener. Roketçi → tank ve helikopteri. Tank → aracı. Uçaksavar → hava birliklerini. Topçu → yapıları uzaktan. EMP → Ana Yapay Zekayı kilitler.</p>

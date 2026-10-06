@@ -53,7 +53,7 @@ function startNew(){
     var b=BASES[ME]; CAM.z = UI.hw&&UI.hw.mobile?0.9:1; centerOn(b.x*T,b.y*T);
     $('loading').classList.add('hide'); resume();
     uiMsg('Komutan, hoş geldin! Önce 🏗 Enerji Santrali, sonra Rafineri kur.','good');
-    setTimeout(function(){ uiMsg('İpucu: Birliğe dokun → haritaya dokun = git. Düşmana dokun = saldır.'); }, 4500);
+    setTimeout(function(){ uiMsg('İpucu: Askere dokun, sonra yere dokun ya da parmağını sürükle — oraya gider.'); }, 4500);
     setTimeout(function(){ uiMsg('İşçilerle odun ve taş topla, 🔨 Zanaat sekmesinde eşya üret. Geceleri mutant sürüleri gelir!'); }, 10000);
     saveGame(true);
   }, 60);
@@ -87,9 +87,12 @@ function renderDevlet(){
 
 /* ---------- açılış ---------- */
 function boot(){
+  applyPhoneChrome();
   loadSettings(); applyQuality();
   initRender($('game')); setupInput();
-  addEventListener('resize', function(){ resize(); });
+  addEventListener('resize', function(){ applyPhoneChrome(); resize(); });
+  if (window.visualViewport) visualViewport.addEventListener('resize', function(){ resize(); });
+  addEventListener('orientationchange', function(){ setTimeout(function(){ applyPhoneChrome(); resize(); }, 280); });
   addEventListener('mousemove', function(e){ UI.mouse={x:e.clientX,y:e.clientY}; });
   addEventListener('mouseout', function(e){ if (!e.relatedTarget) UI.mouse=null; });
   $('mNew').onclick=function(){ $('newOpts').classList.toggle('hide'); };
@@ -120,19 +123,57 @@ function boot(){
   $('devletClose').onclick=function(){ $('devlet').classList.add('hide'); };
   $('logBtn').onclick=function(){ $('log').classList.toggle('hide'); };
   $('speedBtn').onclick=function(){ UI.speed = UI.speed===1?2:UI.speed===2?3:UI.speed===3?0.5:1; this.textContent='⏩ '+UI.speed+'×'; };
-  $('boxBtn').onclick=function(){ UI.boxMode=!UI.boxMode; this.classList.toggle('on',UI.boxMode); if (UI.boxMode) uiMsg('Kutu seçim: parmağını sürükle'); };
+  $('boxBtn').onclick=function(){ UI.boxMode=!UI.boxMode; this.classList.toggle('on',UI.boxMode); uiMsg(UI.boxMode ? 'Kutu seçim açık (isteğe bağlı). Kapatmak için ⬚' : 'Kutu seçim kapalı. Askere dokun, sürükleyerek yürüt.'); };
   $('armyBtn').onclick=selectArmy;
   $('baseBtn').onclick=function(){ var b=nearestOwnB('yard'); if (b) centerOn(b.x,b.y); };
-  $('deselBtn').onclick=function(){ SEL=[]; cancelModes(); };
+  $('deselBtn').onclick=function(){ SEL=[]; cancelModes(); var sp=$('selp'); if (sp) sp.classList.remove('open'); if (isNarrow() || document.documentElement.classList.contains('mob')) closeDrawers(); };
   $('swBtn').onclick=function(){ if (teamOf(ME).sw>=BLD.uplink.sw){ TARGETING={kind:'ion'}; uiMsg('İyon Topu: hedefe dokun'); } else uiMsg('İyon Topu henüz dolmadı'); };
   $('placeOk').onclick=function(){ placeGhost(); };
-  $('placeNo').onclick=function(){ cancelModes(); };
+  $('placeNo').onclick=function(){ cancelModes(); if (isNarrow() || document.documentElement.classList.contains('mob')) setSideOpen(false); };
+  bindFlip($('buildBtn'), 'side');
+  bindFlip($('cmdBtn'), 'cmd');
+  bindClear($('sideClose'), 'side-open');
+  bindClear($('cmdClose'), 'cmd-open');
+  $('selp').addEventListener('pointerup', function(ev){ if (!document.documentElement.classList.contains('mob')) return; if (ev.target.closest && ev.target.closest('button')) return; $('selp').classList.toggle('open'); });
+  document.addEventListener('pointerdown', maybeAutoFs, true);
+  document.addEventListener('fullscreenchange', syncFs);
+  document.addEventListener('webkitfullscreenchange', syncFs);
+  var fsLock=0;
+  function onFsTap(ev){ if (ev){ ev.preventDefault(); ev.stopPropagation(); } var now=Date.now(); if (now-fsLock<400) return; fsLock=now; toggleImmersive(); }
+  $('fsBtn').addEventListener('pointerup', onFsTap);
+  $('fsBtn').addEventListener('click', onFsTap);
   $('overEndless').onclick=function(){ G.endless=true; G.over=null; G.ai[1].respawnAt=G.t+30; $('over').classList.add('hide'); resume(); uiMsg('Sonsuz savaş başladı. Dünya seni bekliyor, Komutan.','good'); };
   $('overMenu').onclick=function(){ $('over').classList.add('hide'); showMenu(); };
-  addEventListener('pagehide', function(){ if (G && !UI.paused) saveGame(true); });
-  document.addEventListener('visibilitychange', function(){ if (document.hidden && G){ saveGame(true); } });
+  function onAppHide(){ if (typeof audioSetBackground==='function') audioSetBackground(true); if (G && !UI.paused){ try{ saveGame(true); }catch(err){} } }
+  function onAppShow(){ if (document.hidden || document.visibilityState==='hidden') return; if (typeof audioSetBackground==='function') audioSetBackground(false); }
+  addEventListener('pagehide', onAppHide);
+  addEventListener('pageshow', onAppShow);
+  document.addEventListener('visibilitychange', function(){ if (document.hidden) onAppHide(); else onAppShow(); });
+  addEventListener('blur', function(){ setTimeout(function(){ if (document.hidden || document.visibilityState==='hidden' || !document.hasFocus()){ if (typeof audioSetBackground==='function') audioSetBackground(true); } }, 250); });
+  addEventListener('focus', function(){ if (!document.hidden) onAppShow(); });
   var pk = window.PACKS ? PACKS.status() : null; if ($('packInfo') && pk) $('packInfo').textContent=pk;
   showMenu();
   requestAnimationFrame(frame);
+}
+function inFullscreen(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+function requestImmersive(){
+  var el=document.documentElement, ret;
+  try {
+    if (el.requestFullscreen) ret=el.requestFullscreen({navigationUI:'hide'});
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  } catch(e){ try { if (el.requestFullscreen) ret=el.requestFullscreen(); } catch(e2){} }
+  if (ret && ret.catch) ret.catch(function(){});
+}
+function toggleImmersive(){
+  if (inFullscreen()){ var ex=document.exitFullscreen||document.webkitExitFullscreen; if (ex){ var r=ex.call(document); if (r&&r.catch) r.catch(function(){}); } }
+  else requestImmersive();
+}
+function syncFs(){ document.documentElement.classList.toggle('is-fs', inFullscreen()); var b=$('fsBtn'); if (b) b.classList.toggle('on', inFullscreen()); if (typeof resize==='function') resize(); }
+var fsTries=0;
+function maybeAutoFs(){
+  if (!document.documentElement.classList.contains('mob')) return;
+  if (inFullscreen() || fsTries>=3) return;
+  fsTries++;
+  requestImmersive();
 }
 window.addEventListener('DOMContentLoaded', boot);
