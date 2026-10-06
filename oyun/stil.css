@@ -1,6 +1,6 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
-html,body{width:100%;height:100%;overflow:hidden;background:#0d1117;color:#e8eef5;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;touch-action:none;overscroll-behavior:none}
-#game{position:fixed;inset:0;display:block;touch-action:none}
+html,body{width:100%;height:100%;height:100dvh;min-height:100dvh;position:fixed;inset:0;overflow:hidden;background:#0d1117;color:#e8eef5;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;touch-action:none;overscroll-behavior:none}
+#game{position:fixed;inset:0;display:block;touch-action:none;width:100%;height:100%}
 .hide{display:none!important}
 button{font:inherit;color:#eef3f8;background:linear-gradient(#2c3a48,#1c2631);border:1px solid #4a5d70;border-radius:8px;padding:6px 10px;cursor:pointer}
 button:active{transform:translateY(1px)} button.on{background:linear-gradient(#3d7a3d,#285428);border-color:#7c7}
@@ -15,6 +15,7 @@ button:disabled{opacity:.4}
 #top button{padding:4px 8px;height:32px}
 #swBtn.ready{background:linear-gradient(#2a8fb0,#155a75);animation:blink 1s infinite}
 #side{position:fixed;right:0;top:40px;bottom:0;width:188px;background:rgba(12,17,24,.9);border-left:1px solid #2d3b4a;z-index:4;display:flex;flex-direction:column}
+#sideClose{display:none}
 #tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:3px}
 .tab{padding:3px 0;display:flex;flex-direction:column;align-items:center;font-size:16px;border-radius:6px}
 .tab small{font-size:9px;opacity:.8}
@@ -41,8 +42,12 @@ button:disabled{opacity:.4}
 .acts{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px} .acts button{font-size:12px;padding:5px 8px}
 #touch{position:fixed;left:6px;bottom:184px;display:flex;flex-direction:column;gap:6px;z-index:4}
 #touch button{width:44px;height:44px;font-size:20px;padding:0;background:rgba(20,28,38,.85)}
-#placebar{position:fixed;left:50%;transform:translateX(-50%);top:50px;z-index:6;display:flex;gap:8px;align-items:center;background:rgba(12,17,24,.92);padding:6px 10px;border-radius:10px;border:1px solid #6a6}
-#placebar button{font-size:15px;padding:8px 14px} #placebar small{opacity:.7;font-size:11px;max-width:160px}
+#cmdClose{display:none}
+#placebar{position:fixed;left:50%;transform:translateX(-50%);top:46px;z-index:7;display:flex;gap:6px;align-items:center;background:rgba(12,17,24,.92);padding:3px 6px;border-radius:999px;border:1px solid #6a6;max-width:calc(100vw - 16px)}
+#placebar button{font-size:13px;padding:3px 10px;height:28px} #placebar small{opacity:.75;font-size:11px;white-space:nowrap}
+.phone-only{display:none}
+html.side-shut #side{display:none!important}
+html.cmd-shut #touch{display:none!important}
 #toasts{position:fixed;left:50%;transform:translateX(-50%);top:48px;z-index:7;display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none;width:min(90vw,560px)}
 .toast{background:rgba(12,17,24,.9);border:1px solid #4a5d70;border-radius:8px;padding:6px 12px;font-size:13px;transition:opacity .6s;text-align:center}
 .toast.good{border-color:#5c5;color:#cfc} .toast.bad{border-color:#d55;color:#fcc} .toast.out{opacity:0}
@@ -75,3 +80,42 @@ button:disabled{opacity:.4}
   #log{right:156px}
 }
 @media (max-height:420px){ #touch{flex-direction:row;bottom:auto;top:42px;left:6px} #touch button{width:38px;height:38px} #mini{width:104px;height:104px} #selp{left:116px} }
+
+/* Telefon: tek ince şerit, çekmeceler kapalı, oyun alanı ekranın çoğu */
+html.mob #top{height:28px;font-size:11px;gap:3px;padding:0 4px;z-index:10;overflow-x:auto;overflow-y:hidden;touch-action:pan-x}
+html.mob #top .cell{padding:1px 4px}
+html.mob #top .money b{font-size:13px}
+html.mob #top .small,html.mob #mats,html.mob #moral,html.mob #day{display:none!important}
+html.mob #top button{height:24px;min-width:24px;padding:0 5px;font-size:13px}
+html.mob .pbar{width:42px;height:7px}
+html.mob .phone-only{display:inline-flex;align-items:center;justify-content:center}
+html.mob #side{top:28px;width:min(118px,32vw);z-index:8;background:rgba(12,17,24,.94)}
+html.mob #sideClose{display:flex;align-items:center;justify-content:center;width:100%;height:30px;border-radius:0;border:none;border-bottom:1px solid #4a5d70;background:#243140;font-size:13px;flex:none}
+html.mob #tabs{grid-template-columns:repeat(4,1fr)}
+html.mob .tab{font-size:14px;padding:2px 0}
+html.mob .item{aspect-ratio:1/0.92}
+html.mob #touch{flex-direction:row;top:32px;bottom:auto;left:4px;gap:4px;z-index:8}
+html.mob #touch button{width:32px;height:32px;font-size:15px}
+html.mob #cmdClose{display:inline-flex;align-items:center;justify-content:center}
+html.mob #placebar{top:32px;padding:1px 4px;gap:4px;background:rgba(12,17,24,.88)}
+html.mob #placebar small{display:none}
+html.mob #placebar button{height:24px;font-size:12px;padding:0 8px}
+html.mob #mini{width:72px;height:72px;left:4px;bottom:4px}
+html.mob #selp{left:80px;right:6px;bottom:4px;max-width:none;padding:3px 8px;font-size:11px;z-index:6;cursor:pointer}
+html.mob #selp .sn{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.mob #selp .sn::after{content:'  ▾';opacity:.65;font-size:10px}
+html.mob #selp.open .sn::after{content:'  ▴'}
+html.mob #selp:not(.open){max-height:34px;overflow:hidden}
+html.mob #selp:not(.open) .sp,html.mob #selp:not(.open) .acts{display:none}
+html.mob #selp .hpb{margin-top:2px;height:4px}
+html.mob #selp.open{max-height:32vh;overflow:auto}
+html.mob #selp.open .acts button{font-size:11px;padding:3px 6px}
+html.mob #fps{display:none}
+html.mob #toasts{top:34px;width:min(70vw,280px)}
+html.mob .toast{font-size:12px;padding:4px 8px}
+@media (max-height:420px){
+  html.mob #mini{width:52px;height:52px}
+  html.mob #selp{left:60px}
+  html.mob #top{height:26px}
+  html.mob #side{top:26px}
+}

@@ -101,7 +101,7 @@ function updateTopBar(){
 function updateSelPanel(){
   SEL=SEL.filter(function(e){ return !e.dead && G.map[e.id]; });
   var p=$('selp');
-  if (!SEL.length){ p.classList.add('hide'); return; }
+  if (!SEL.length){ p.classList.add('hide'); p.classList.remove('open'); return; }
   p.classList.remove('hide');
   var e=SEL[0], d=defOf(e), own=e.team===ME, h='';
   if (SEL.length===1){
@@ -180,6 +180,7 @@ function centerOn(x,y){ CAM.x=x-VIEW.w/CAM.z/2; CAM.y=y-VIEW.h/CAM.z/2; clampCam
 
 /* ---------- kontroller ---------- */
 var PTR={}, PINCH=null;
+function ownMobileUnits(){ return SEL.filter(function(s){ return s.team===ME && s.k==='u' && !s.dead; }); }
 function pick(wx, wy, slop){
   var best=null, bd=1e9;
   for (var i=G.ents.length-1;i>=0;i--){ var e=G.ents[i]; if (!entVisible(e)) continue;
@@ -192,8 +193,11 @@ function meteorAt(wx,wy){ for (var i=0;i<G.meteors.length;i++){ var m=G.meteors[
 function setupInput(){
   var c=CV;
   c.addEventListener('contextmenu', function(e){ e.preventDefault(); });
-  c.addEventListener('pointerdown', function(e){ audioInit(); c.setPointerCapture(e.pointerId); PTR[e.pointerId]={x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,t:Date.now(),btn:e.button,type:e.pointerType,moved:false};
-    var ids=Object.keys(PTR); if (ids.length===2){ var a=PTR[ids[0]], b=PTR[ids[1]]; PINCH={d:dist(a.x,a.y,b.x,b.y), z:CAM.z, mx:(a.x+b.x)/2, my:(a.y+b.y)/2}; DRAGBOX=null; } });
+  c.addEventListener('pointerdown', function(e){ audioInit(); try { c.setPointerCapture(e.pointerId); } catch (err) {}
+    var rec={x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,t:Date.now(),btn:e.button,type:e.pointerType,moved:false,driving:false,pan:false,grab:null,lastCmd:0};
+    if (e.pointerType!=='mouse' && !UI.boxMode && !GHOST){ var gw=screenToWorld(e.clientX,e.clientY); rec.grab=pick(gw[0],gw[1],18); }
+    PTR[e.pointerId]=rec;
+    var ids=Object.keys(PTR); if (ids.length===2){ var a=PTR[ids[0]], b=PTR[ids[1]]; PINCH={d:dist(a.x,a.y,b.x,b.y), z:CAM.z, mx:(a.x+b.x)/2, my:(a.y+b.y)/2}; DRAGBOX=null; DRAGMOVE=null; ids.forEach(function(id){ PTR[id].pan=true; PTR[id].driving=false; }); } });
   c.addEventListener('pointermove', function(e){
     var w=screenToWorld(e.clientX,e.clientY);
     if (GHOST && e.pointerType==='mouse'){ var d=BLD[GHOST.type]; GHOST.tx=Math.floor(w[0]/T-d.w/2+0.5); GHOST.ty=Math.floor(w[1]/T-d.h/2+0.5); }
@@ -201,30 +205,48 @@ function setupInput(){
     if (e.pointerType==='mouse') HOVER=pick(w[0],w[1],4);
     var p=PTR[e.pointerId]; if (!p) return;
     var dx=e.clientX-p.x, dy=e.clientY-p.y; p.x=e.clientX; p.y=e.clientY;
-    if (Math.abs(p.x-p.x0)+Math.abs(p.y-p.y0)>10) p.moved=true;
+    var travel=Math.abs(p.x-p.x0)+Math.abs(p.y-p.y0);
+    if (travel>(p.type==='mouse'?8:24)) p.moved=true;
     var ids=Object.keys(PTR);
     if (ids.length>=2 && PINCH){ var a=PTR[ids[0]], b=PTR[ids[1]], nd=dist(a.x,a.y,b.x,b.y), mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
       var before=screenToWorld(mx,my); CAM.z=clamp(PINCH.z*nd/PINCH.d, 0.25, 2.5); var after=screenToWorld(mx,my); CAM.x+=before[0]-after[0]; CAM.y+=before[1]-after[1];
       CAM.x-=(mx-PINCH.mx)/CAM.z; CAM.y-=(my-PINCH.my)/CAM.z; PINCH.mx=mx; PINCH.my=my; clampCam(); return; }
+    if (GHOST && p.type!=='mouse'){ var d2=BLD[GHOST.type]; GHOST.tx=Math.floor(w[0]/T-d2.w/2+0.5); GHOST.ty=Math.floor(w[1]/T-d2.h/2+0.5); return; }
+    if (TARGETING && p.type!=='mouse') return;
     if (!p.moved) return;
     var boxing = (p.type==='mouse' && p.btn===0) || (p.type!=='mouse' && UI.boxMode);
-    if (GHOST && p.type!=='mouse'){ var d2=BLD[GHOST.type]; GHOST.tx=Math.floor(w[0]/T-d2.w/2+0.5); GHOST.ty=Math.floor(w[1]/T-d2.h/2+0.5); return; }
-    if (boxing && !GHOST){ DRAGBOX={x0:p.x0,y0:p.y0,x1:p.x,y1:p.y}; }
-    else { CAM.x-=dx/CAM.z; CAM.y-=dy/CAM.z; clampCam(); }
+    if (boxing && !GHOST){ DRAGBOX={x0:p.x0,y0:p.y0,x1:p.x,y1:p.y}; return; }
+    /* Telefonda seçili birliği parmakla yürüt; kutu seçim yalnızca ⬚ açıkken */
+    if (p.type!=='mouse' && !p.pan && !UI.boxMode && !GHOST && !TARGETING){
+      if (p.grab && p.grab.k==='u' && p.grab.team===ME && SEL.indexOf(p.grab)<0) SEL=[p.grab];
+      var units=ownMobileUnits();
+      if (units.length){
+        p.driving=true; DRAGMOVE={x:w[0],y:w[1]};
+        var now=Date.now(); if (!p.lastCmd || now-p.lastCmd>90){ p.lastCmd=now; orderMove(units, w[0], w[1], false); }
+        return;
+      }
+    }
+    CAM.x-=dx/CAM.z; CAM.y-=dy/CAM.z; clampCam();
   });
   function up(e){
     var p=PTR[e.pointerId]; delete PTR[e.pointerId]; if (!p) return;
-    if (PINCH){ if (Object.keys(PTR).length<2) PINCH=null; return; }
+    if (PINCH){ if (Object.keys(PTR).length<2) PINCH=null; DRAGMOVE=null; return; }
     var w=screenToWorld(e.clientX,e.clientY);
-    if (DRAGBOX){ boxSelect(DRAGBOX, e.shiftKey); DRAGBOX=null; return; }
-    if (p.moved) return;
-    if (p.type==='mouse' && p.btn===2){ // sağ tık: komut ya da iptal
+    var travel=Math.abs(e.clientX-p.x0)+Math.abs(e.clientY-p.y0);
+    var tapSlop=p.type==='mouse'?8:30;
+    if (DRAGBOX && (Math.abs(DRAGBOX.x1-DRAGBOX.x0)+Math.abs(DRAGBOX.y1-DRAGBOX.y0)>12)){ boxSelect(DRAGBOX, e.shiftKey); DRAGBOX=null; DRAGMOVE=null; return; }
+    DRAGBOX=null;
+    if (p.driving){ DRAGMOVE=null; command(w[0],w[1]); return; }
+    DRAGMOVE=null;
+    if (p.type==='mouse' && p.btn===2){
+      if (travel>tapSlop) return;
       if (GHOST || TARGETING){ cancelModes(); return; }
       if (SEL.some(function(s){return s.team===ME;})) command(w[0],w[1]); return; }
-    if (p.type==='mouse' && p.btn===1) return;
-    tap(w[0],w[1], p.type, e.shiftKey);
+    if (p.type==='mouse' && p.btn!==0) return;
+    if (GHOST && p.type!=='mouse' && travel>tapSlop) return;
+    if (travel<=tapSlop || (TARGETING && p.type!=='mouse')) tap(w[0],w[1], p.type, e.shiftKey);
   }
-  c.addEventListener('pointerup', up); c.addEventListener('pointercancel', function(e){ delete PTR[e.pointerId]; PINCH=null; DRAGBOX=null; });
+  c.addEventListener('pointerup', up); c.addEventListener('pointercancel', function(e){ delete PTR[e.pointerId]; PINCH=null; DRAGBOX=null; DRAGMOVE=null; });
   c.addEventListener('wheel', function(e){ e.preventDefault(); var before=screenToWorld(e.clientX,e.clientY); CAM.z=clamp(CAM.z*(e.deltaY<0?1.12:1/1.12),0.25,2.5); var after=screenToWorld(e.clientX,e.clientY); CAM.x+=before[0]-after[0]; CAM.y+=before[1]-after[1]; clampCam(); }, {passive:false});
   addEventListener('keydown', function(e){ UI.keys[e.key.toLowerCase()]=true;
     if (e.key==='Escape'){ if (GHOST||TARGETING) cancelModes(); else if (!$('menu').classList.contains('hide')) { if (G && !G.over) resume(); } else showMenu(); }
@@ -247,7 +269,7 @@ function boxSelect(b, add){
   var s=G.ents.filter(function(e){ return e.k==='u' && e.team===ME && e.x>=a[0] && e.x<=c[0] && e.y-(e.z||0)>=a[1] && e.y-(e.z||0)<=c[1]; });
   var army=s.filter(function(u){ return !UNT[u.type].harvest; }); if (army.length) s=army;
   SEL = add ? SEL.concat(s.filter(function(x){return SEL.indexOf(x)<0;})) : s; if (s.length) sfx('click');
-  UI.boxMode=false; $('boxBtn').classList.remove('on');
+  UI.boxMode=false; var bb=$('boxBtn'); if (bb) bb.classList.remove('on');
 }
 function selectArmy(){ SEL=G.ents.filter(function(e){ return e.k==='u'&&e.team===ME&&UNT[e.type].wpn; }); uiMsg(SEL.length+' savaş birliği seçildi'); }
 function tap(wx, wy, ptype, shift){
@@ -305,4 +327,10 @@ function placeGhost(){
     else cancelModes(); updateSidebar(); }
   else uiMsg('Buraya kurulamaz (kendi yapılarına yakın ve boş zemin gerekli)','bad');
 }
-function showPlaceBar(on){ $('placebar').classList.toggle('hide', !on); }
+function showPlaceBar(on){
+  var bar=$('placebar'); if (bar) bar.classList.toggle('hide', !on);
+  if (on && document.documentElement.classList.contains('mob')){
+    document.documentElement.classList.add('side-shut','cmd-shut');
+    if (typeof syncDrawerButtons==='function') syncDrawerButtons();
+  }
+}

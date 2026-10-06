@@ -16,8 +16,10 @@ function initRender(canvas){
   resize();
 }
 function resize(){
+  var vv=window.visualViewport;
   VIEW.dpr = Math.min(window.devicePixelRatio||1, QUALITY.dpr);
-  VIEW.w = window.innerWidth; VIEW.h = window.innerHeight;
+  VIEW.w = Math.round(vv ? vv.width : window.innerWidth);
+  VIEW.h = Math.round(vv ? vv.height : window.innerHeight);
   CV.width = Math.round(VIEW.w*VIEW.dpr); CV.height=Math.round(VIEW.h*VIEW.dpr);
   CV.style.width=VIEW.w+'px'; CV.style.height=VIEW.h+'px';
   LIGHT_CV.width=Math.ceil(VIEW.w/3); LIGHT_CV.height=Math.ceil(VIEW.h/3);

@@ -1,5 +1,5 @@
 /* ORDU SAVAŞI: KOMUTA — sahne çizimi: kamera, katmanlar, gece ışığı, hava durumu, sis, seçim */
-var SEL=[], HOVER=null, GHOST=null, DRAGBOX=null, TARGETING=null;
+var SEL=[], HOVER=null, GHOST=null, DRAGBOX=null, DRAGMOVE=null, TARGETING=null;
 function worldToScreen(x,y){ return [(x-CAM.x)*CAM.z, (y-CAM.y)*CAM.z]; }
 function screenToWorld(sx,sy){ return [sx/CAM.z+CAM.x, sy/CAM.z+CAM.y]; }
 function clampCam(){
@@ -87,6 +87,11 @@ function render(dt){
   G.ents.forEach(function(e){ if (e.hp>=e.mhp && SEL.indexOf(e)<0 && HOVER!==e) return; if (!entVisible(e)) return; if (e.k==='b' && e.team===2 && SEL.indexOf(e)<0) return; drawHP(g,e,z); });
   FX.texts.forEach(function(t){ g.font='bold '+(12/Math.max(z,0.6))+'px sans-serif'; g.fillStyle='rgba(0,0,0,0.6)'; g.fillText(t.s,t.x+1,t.y+1); g.fillStyle=t.c; g.fillText(t.s,t.x,t.y); });
   if (GHOST) drawGhost(g);
+  if (DRAGMOVE){
+    g.strokeStyle='rgba(160,255,170,0.95)'; g.lineWidth=2/z; g.beginPath(); g.arc(DRAGMOVE.x, DRAGMOVE.y, 12, 0, 6.283); g.stroke();
+    g.beginPath(); g.moveTo(DRAGMOVE.x-16, DRAGMOVE.y); g.lineTo(DRAGMOVE.x+16, DRAGMOVE.y); g.moveTo(DRAGMOVE.x, DRAGMOVE.y-16); g.lineTo(DRAGMOVE.x, DRAGMOVE.y+16); g.stroke();
+    SEL.forEach(function(e){ if (e.dead || e.k!=='u' || e.team!==ME) return; g.strokeStyle='rgba(160,255,170,0.4)'; g.beginPath(); g.moveTo(e.x, e.y); g.lineTo(DRAGMOVE.x, DRAGMOVE.y); g.stroke(); });
+  }
   if (TARGETING && TARGETING.mx!=null){ g.strokeStyle= TARGETING.kind==='ion'?'rgba(120,230,255,0.9)':'rgba(255,220,80,0.9)'; g.lineWidth=2/z; var r= TARGETING.kind==='ion'?5*T:20; g.beginPath(); g.arc(TARGETING.mx,TARGETING.my,r,0,6.283); g.stroke(); g.beginPath(); g.moveTo(TARGETING.mx-r-8,TARGETING.my); g.lineTo(TARGETING.mx+r+8,TARGETING.my); g.moveTo(TARGETING.mx,TARGETING.my-r-8); g.lineTo(TARGETING.mx,TARGETING.my+r+8); g.stroke(); }
   g.setTransform(VIEW.dpr,0,0,VIEW.dpr,0,0);
   if (DRAGBOX){ g.strokeStyle='#8f8'; g.lineWidth=1; g.fillStyle='rgba(120,255,140,0.12)'; var bx=Math.min(DRAGBOX.x0,DRAGBOX.x1), by=Math.min(DRAGBOX.y0,DRAGBOX.y1), bw=Math.abs(DRAGBOX.x1-DRAGBOX.x0), bh=Math.abs(DRAGBOX.y1-DRAGBOX.y0); g.fillRect(bx,by,bw,bh); g.strokeRect(bx,by,bw,bh); }
