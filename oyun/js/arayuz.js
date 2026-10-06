@@ -329,8 +329,12 @@ function placeGhost(){
 }
 function showPlaceBar(on){
   var bar=$('placebar'); if (bar) bar.classList.toggle('hide', !on);
-  if (on && document.documentElement.classList.contains('mob')){
-    document.documentElement.classList.add('side-shut','cmd-shut');
-    if (typeof syncDrawerButtons==='function') syncDrawerButtons();
+  if (on && (document.documentElement.classList.contains('mob') || (typeof isNarrow==='function' && isNarrow()))){
+    if (typeof closeDrawers==='function') closeDrawers();
+    else {
+      document.documentElement.classList.add('side-shut','cmd-shut');
+      document.documentElement.classList.remove('side-open','cmd-open');
+      if (typeof syncDrawerButtons==='function') syncDrawerButtons();
+    }
   }
 }

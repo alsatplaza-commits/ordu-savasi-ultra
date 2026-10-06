@@ -92,7 +92,7 @@ html.mob #top button{height:24px;min-width:24px;padding:0 5px;font-size:13px}
 html.mob .pbar{width:42px;height:7px}
 html.mob .phone-only{display:inline-flex;align-items:center;justify-content:center}
 html.mob #side{top:28px;width:min(118px,32vw);z-index:8;background:rgba(12,17,24,.94)}
-html.mob #sideClose{display:flex;align-items:center;justify-content:center;width:100%;height:30px;border-radius:0;border:none;border-bottom:1px solid #4a5d70;background:#243140;font-size:13px;flex:none}
+html.mob #sideClose{display:flex;align-items:center;justify-content:center;width:100%;height:40px;border-radius:0;border:none;border-bottom:1px solid #4a5d70;background:#243140;font-size:14px;flex:none}
 html.mob #tabs{grid-template-columns:repeat(4,1fr)}
 html.mob .tab{font-size:14px;padding:2px 0}
 html.mob .item{aspect-ratio:1/0.92}
@@ -123,4 +123,22 @@ html.mob .toast{font-size:12px;padding:4px 8px}
 }
 @media (max-width:520px){
   html.mob #clock,html.mob #devletBtn,html.mob #logBtn{display:none!important}
+}
+
+/* Dar ekran: yapı çekmecesi kapalı başlar, açıkken ekranın en fazla ~çeyreği.
+   html.mob olmasa da geçer (X ile kapanır). */
+@media (max-width:700px), (max-height:500px) and (max-width:1100px){
+  #fps{display:none!important}
+  #mats,#day,#moral{display:none!important}
+  .phone-only{display:inline-flex!important;align-items:center;justify-content:center}
+  #top{height:28px;font-size:11px}
+  #side{top:28px;width:min(100px,26vw)!important;z-index:8}
+  html:not(.side-open) #side{display:none!important}
+  html.side-open #side{display:flex!important}
+  #sideClose{display:flex!important;align-items:center;justify-content:center;width:100%;height:40px;border-radius:0;border:none;border-bottom:1px solid #4a5d70;background:#243140;font-size:14px;flex:none;position:relative;z-index:9}
+  html:not(.cmd-open) #touch{display:none!important}
+  html.cmd-open #touch{display:flex!important;flex-direction:row;top:32px;bottom:auto;left:4px;z-index:8}
+  #cmdClose{display:inline-flex!important;align-items:center;justify-content:center}
+  #mini{width:64px;height:64px}
+  #touch button{width:36px;height:36px}
 }
