@@ -1,0 +1,59 @@
+{
+  "name": "ordu-savasi-ultra",
+  "productName": "Ordu Savasi Ultra",
+  "version": "1.0.0",
+  "description": "Ordu Sava\u015f\u0131 Ultra \u2014 Frontier Rift: ger\u00e7ek zamanl\u0131 strateji",
+  "main": "main.js",
+  "author": "alsatplaza-commits",
+  "license": "UNLICENSED",
+  "build": {
+    "appId": "io.github.alsatplazacommits.ordusavasiultra",
+    "productName": "Ordu Savasi Ultra",
+    "files": [
+      "main.js",
+      "app/**/*"
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "signAndEditExecutable": true
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Ordu Sava\u015f\u0131 Ultra",
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "OrduSavasiUltra-Kurulum-${version}.exe"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Game",
+      "icon": "build/icon.png"
+    },
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  }
+}

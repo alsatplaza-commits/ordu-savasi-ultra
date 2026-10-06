@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://alsatplaza-commits.github.io; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d1117">
+<title>Ordu Savaşı Ultra — Frontier Rift</title>
+<link rel="stylesheet" href="stil.css">
+<link rel="icon" href="ikon.png">
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="top">
+  <div class="cell money">₺ <b id="cr">0</b><small id="cap"></small></div>
+  <div class="cell power" title="Elektrik: kullanılan / üretilen"><span>⚡</span><div class="pbar"><i id="powFill"></i></div><small id="powTxt"></small></div>
+  <div class="cell" id="mats"></div>
+  <div class="cell" id="clock"></div>
+  <div class="cell small" id="day"></div>
+  <div class="cell" id="moral"></div>
+  <div class="spacer"></div>
+  <button id="swBtn" class="hide">⚡</button>
+  <button id="devletBtn" title="Devlet ve toplum">🏛</button>
+  <button id="logBtn" title="Olaylar">📜</button>
+  <button id="speedBtn">⏩ 1×</button>
+  <button id="saveBtn" title="Kaydet">💾</button>
+  <button id="menuBtn" title="Menü">☰</button>
+</div>
+
+<div id="side">
+  <div id="tabs"></div>
+  <div id="grid"></div>
+</div>
+<div id="tip" class="hide"></div>
+
+<canvas id="mini" width="200" height="200"></canvas>
+<div id="selp" class="hide"></div>
+<div id="touch">
+  <button id="boxBtn" title="Kutu ile seç">⬚</button>
+  <button id="armyBtn" title="Tüm ordu">👥</button>
+  <button id="baseBtn" title="Üsse git">🏠</button>
+  <button id="deselBtn" title="Seçimi bırak">✖</button>
+</div>
+<div id="placebar" class="hide"><button id="placeOk">✔ Yerleştir</button><button id="placeNo">✖ Vazgeç</button><small>Dokun: konumu seç • aynı yere tekrar dokun ya da ✔</small></div>
+<div id="toasts"></div>
+<div id="fps"></div>
+
+<div id="log" class="panel hide"><h2>📜 Olaylar</h2><div id="logList"></div></div>
+
+<div id="devlet" class="panel hide"><button class="x" id="devletClose">✖</button><h2>🏛 Devlet ve Toplum</h2><div id="devletBody"></div></div>
+
+<div id="menu" class="overlay">
+  <div class="mbox">
+    <div class="logo">ORDU SAVAŞI <span>ULTRA</span></div>
+    <div class="sub">FRONTIER RIFT • Gerçek zamanlı strateji</div>
+    <button id="mContinue">▶ Devam</button>
+    <button id="mNew">⚔ Yeni Oyun</button>
+    <div id="newOpts" class="hide">
+      <label>Zorluk <select id="optDiff"><option value="0">Kolay</option><option value="1" selected>Normal</option><option value="2">Zor</option></select></label>
+      <label>Dünya <select id="optSize"><option value="160">Geniş (160×160)</option><option value="224" selected>Çok geniş (224×224)</option><option value="288">Dev (288×288)</option><option value="384">Devasa (384×384)</option></select></label>
+      <button id="mStart" class="go">Başla</button>
+    </div>
+    <button id="mExport">⬇ Kaydı indir</button>
+    <button id="mImport">⬆ Kayıt yükle</button>
+    <button id="mSettings">⚙ Ayarlar</button>
+    <button id="mHelp">❓ Nasıl oynanır</button>
+    <div class="foot" id="packInfo"></div>
+  </div>
+</div>
+
+<div id="settings" class="overlay hide">
+  <div class="mbox wide">
+    <h2>⚙ Ayarlar</h2>
+    <div id="hwInfo" class="hint"></div>
+    <label>Grafik kalitesi <select id="optQ"><option value="auto">Otomatik (cihaza göre)</option><option value="dusuk">Hafif</option><option value="orta">Orta</option><option value="yuksek">Yüksek</option></select></label>
+    <div class="hint">Dünya hiçbir cihazda küçültülmez. Zayıf cihazda sadece efektler azalır.</div>
+    <label>Efekt sesi <input type="range" id="optVol" min="0" max="1" step="0.05"></label>
+    <label>Müzik <input type="range" id="optMus" min="0" max="1" step="0.05"></label>
+    <label><input type="checkbox" id="optEdge"> Fare ekran kenarına gelince kaydır</label>
+    <hr>
+    <h3>İçerik paketleri</h3>
+    <div class="hint">Paketler imzalıdır ve her dosya SHA-256 ile kontrol edilir. Sadece resmi adresten indirilir. Paketler sadece ses ve görsel içerir.</div>
+    <div class="row"><b>🎵 HD Ses Paketi</b> (4 müzik + gece, yağmur, rüzgar, savaş ortam sesleri, ~17 MB)</div>
+    <div class="row"><button id="packHdBtn">⬇ Yükle</button><button id="packHdDel" class="danger hide">Kaldır…</button><span id="packHdState" class="hint"></span></div>
+    <hr>
+    <h3>Veri yönetimi</h3>
+    <button id="wipeBtn" class="danger">🗑 Tüm kayıtları ve paketleri sil…</button>
+    <div id="wipeBox" class="hide"><p>Bu işlem geri alınamaz. Onaylamak için kutuya <b>SIL</b> yaz.</p><input id="wipeInput" autocomplete="off"><button id="wipeGo" class="danger">Kalıcı olarak sil</button><button id="wipeCancel">Vazgeç</button></div>
+    <button id="setClose" class="go">Tamam</button>
+  </div>
+</div>
+
+<div id="help" class="overlay hide">
+  <div class="mbox wide scroll">
+    <h2>❓ Nasıl oynanır</h2>
+    <p><b>Amaç:</b> Kızıl Cephe'nin Komuta Merkezini yık ya da ajanla ele geçir. Kendi Komuta Merkezini koru.</p>
+    <p><b>Seçme:</b> Birliğe dokun. Aynı birliğe iki kez hızlı dokun = ekrandaki aynı türden hepsi. ⬚ ile kutu seç (farede sol tuşla sürükle). 👥 = tüm ordu.</p>
+    <p><b>Emir:</b> Seçiliyken yere dokun = git. Düşmana dokun = saldır. Kristale dokun = toplayıcı oraya gider. Fare: sağ tık da emir verir, seçimi bırakır.</p>
+    <p><b>Kamera:</b> Tek parmakla kaydır, iki parmakla yakınlaştır. Fare tekerleği, WASD, mini harita.</p>
+    <p><b>Üs:</b> Sağdaki 🏗 menüden yapı seç → hazır olunca yeşil alana yerleştir. Elektrik yetmezse her şey yavaşlar.</p>
+    <p><b>Ekonomi:</b> Toplayıcılar kristal, demir, bakır, altın ve meteor elementi toplar. Depo dolunca Silo kur. Petrol kuyularını ajanla al.</p>
+    <p><b>Taş-kağıt-makas:</b> Asker → askeri yener. Roketçi → tank ve helikopteri. Tank → aracı. Uçaksavar → hava birliklerini. Topçu → yapıları uzaktan. EMP → Ana Yapay Zekayı kilitler.</p>
+    <p><b>Ajan:</b> Gizlidir. 🎯 Ajan Görevi ile düşman yapısına gönder, girince yapı senin olur. Kuleler ajanı görür.</p>
+    <p><b>Ana Yapay Zeka Savaş Aracı:</b> En güçlü birlik. Yakındaki tüm düşman araç, asker ve yapıları kendi tarafına çevirir. Laboratuvar + YZ Çekirdeği + Kuantum İşlemci gerekir. EMP'ye karşı zayıftır.</p>
+    <p><b>Hayatta kalma:</b> Geceleri mutant sürüleri gelir; her 7. gece Kızıl Ay ile dev sürü. Duvar ve barikat diz, projektör kur.</p>
+    <p><b>Toplama ve zanaat:</b> İşçilerle ağaç kes, taş kır, ganimet yağmala. 🔨 Zanaat sekmesinde barikat, duvar, sağlık kiti, mayın, projektör ve işlemci üret.</p>
+    <p><b>Meteorlar:</b> Uzaydan yeni element, virüs ve uzay böcekleri gelir. Bilim insanı gönder, incelesin: aşı ve yeni teknolojiler keşfedilir.</p>
+    <p><b>Mevsimler:</b> İlkbahar kristal büyütür, sonbahar çamur getirir, kışın nehirler donar ve askerler buzda yürür.</p>
+    <p><b>Devlet 🏛:</b> Vergi, askerlik, gece yasağı ve sağlık yasalarını seç. Klanların sadakati ve halkın morali savaşı etkiler.</p>
+    <button id="helpClose" class="go">Anladım</button>
+  </div>
+</div>
+
+<div id="over" class="overlay hide"><div class="mbox"><div class="logo" id="overTitle"></div><p id="overText"></p><button id="overEndless" class="go">♾ Sonsuz savaşa devam et</button><button id="overMenu">Menü</button></div></div>
+<div id="loading" class="overlay hide"><div class="mbox"><div class="logo">Dünya oluşturuluyor…</div><p>Nehirler, şehirler, ormanlar ve madenler yerleştiriliyor.</p></div></div>
+
+<script src="js/veri.js"></script>
+<script src="js/doga.js"></script>
+<script src="js/toplum.js"></script>
+<script src="js/zanaat.js"></script>
+<script src="js/dunya.js"></script>
+<script src="js/oyun.js"></script>
+<script src="js/birim.js"></script>
+<script src="js/dongu.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/efekt.js"></script>
+<script src="js/ses.js"></script>
+<script src="js/kayit.js"></script>
+<script src="js/paket.js"></script>
+<script src="js/cizim.js"></script>
+<script src="js/cizim_varlik.js"></script>
+<script src="js/cizim_sahne.js"></script>
+<script src="js/arayuz.js"></script>
+<script src="js/ana.js"></script>
+</body>
+</html>
